@@ -1,0 +1,640 @@
+openapi: 3.0.3
+info:
+  title: CodeZombiesInvestigator IPC API
+  description: IPC interface for CZI desktop application
+  version: 1.0.0
+  contact:
+    name: CZI Development Team
+
+servers:
+  - url: tauri://localhost
+    description: Tauri IPC interface
+
+paths:
+  # Repository Management
+  /repositories:
+    get:
+      summary: List all configured repositories
+      operationId: listRepositories
+      tags:
+        - repositories
+      responses:
+        '200':
+          description: List of repositories
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RepositoryConfiguration'
+
+    post:
+      summary: Add a new repository configuration
+      operationId: addRepository
+      tags:
+        - repositories
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RepositoryConfiguration'
+      responses:
+        '200':
+          description: Repository added successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    description: Repository ID
+        '400':
+          description: Invalid repository configuration
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /repositories/{id}/sync:
+    post:
+      summary: Synchronize repository with remote
+      operationId: syncRepository
+      tags:
+        - repositories
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Repository ID
+      responses:
+        '200':
+          description: Sync completed successfully
+        '404':
+          description: Repository not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Sync failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /repositories/validate:
+    post:
+      summary: Validate repository URL and access
+      operationId: validateRepository
+      tags:
+        - repositories
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                url:
+                  type: string
+                  description: Git repository URL
+                auth_type:
+                  type: string
+                  enum: [none, ssh_key, token, basic]
+                auth_config:
+                  type: object
+                  description: Authentication configuration
+      responses:
+        '200':
+          description: Repository is accessible
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RepositoryInfo'
+        '400':
+          description: Invalid repository URL or authentication
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # Root Node Management
+  /repositories/{repository_id}/root-nodes:
+    get:
+      summary: List root nodes for a repository
+      operationId: listRootNodes
+      tags:
+        - root-nodes
+      parameters:
+        - name: repository_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Repository ID
+      responses:
+        '200':
+          description: List of root nodes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ActiveRootNode'
+
+    post:
+      summary: Add a new root node
+      operationId: addRootNode
+      tags:
+        - root-nodes
+      parameters:
+        - name: repository_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Repository ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ActiveRootNode'
+      responses:
+        '200':
+          description: Root node added successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    description: Root node ID
+
+  # Analysis Operations
+  /analysis/run:
+    post:
+      summary: Start a new analysis
+      operationId: runAnalysis
+      tags:
+        - analysis
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AnalysisConfig'
+      responses:
+        '200':
+          description: Analysis started successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  analysis_id:
+                    type: string
+                    description: Analysis ID for tracking progress
+
+  /analysis/{id}/status:
+    get:
+      summary: Get analysis status
+      operationId: getAnalysisStatus
+      tags:
+        - analysis
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Analysis ID
+      responses:
+        '200':
+          description: Analysis status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalysisStatus'
+
+  /analysis/{id}/results:
+    get:
+      summary: Get analysis results
+      operationId: getAnalysisResults
+      tags:
+        - analysis
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Analysis ID
+      responses:
+        '200':
+          description: Analysis results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalysisResult'
+        '404':
+          description: Analysis not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # Query Operations
+  /symbols/{id}/dependencies:
+    get:
+      summary: Get symbol dependencies
+      operationId: queryDependencies
+      tags:
+        - queries
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Symbol ID
+        - name: depth
+          in: query
+          schema:
+            type: integer
+            default: 1
+            minimum: 1
+            maximum: 10
+          description: Maximum dependency depth
+      responses:
+        '200':
+          description: List of dependencies
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DependencyPath'
+
+  /symbols/{id}/dependents:
+    get:
+      summary: Get symbols that depend on this symbol
+      operationId: queryDependents
+      tags:
+        - queries
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Symbol ID
+        - name: depth
+          in: query
+          schema:
+            type: integer
+            default: 1
+            minimum: 1
+            maximum: 10
+          description: Maximum dependent depth
+      responses:
+        '200':
+          description: List of dependents
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DependencyPath'
+
+  /symbols/{id}:
+    get:
+      summary: Get symbol information
+      operationId: getSymbolInfo
+      tags:
+        - queries
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Symbol ID
+      responses:
+        '200':
+          description: Symbol information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CodeSymbol'
+
+  # Report Generation
+  /analysis/{id}/zombie-report:
+    get:
+      summary: Get zombie code report
+      operationId: getZombieReport
+      tags:
+        - reports
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Analysis ID
+      responses:
+        '200':
+          description: Zombie code report
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ZombieCodeReport'
+
+components:
+  schemas:
+    RepositoryConfiguration:
+      type: object
+      required:
+        - name
+        - url
+      properties:
+        id:
+          type: string
+          description: Repository ID (generated if not provided)
+        name:
+          type: string
+          description: Human-readable repository name
+        url:
+          type: string
+          description: Git repository URL
+        local_path:
+          type: string
+          description: Local cache path
+        branch:
+          type: string
+          default: "main"
+          description: Git branch to analyze
+        auth_type:
+          type: string
+          enum: [none, ssh_key, token, basic]
+          default: "none"
+          description: Authentication method
+        auth_config:
+          type: object
+          description: Authentication configuration
+        last_sync:
+          type: string
+          format: date-time
+          description: Last successful sync timestamp
+        status:
+          type: string
+          enum: [active, syncing, error, disabled]
+          default: "active"
+          description: Repository status
+
+    RepositoryInfo:
+      type: object
+      properties:
+        url:
+          type: string
+          description: Repository URL
+        accessible:
+          type: boolean
+          description: Whether repository is accessible
+        branches:
+          type: array
+          items:
+            type: string
+          description: Available branches
+        error:
+          type: string
+          description: Error message if not accessible
+
+    ActiveRootNode:
+      type: object
+      required:
+        - repository_id
+        - node_type
+        - symbol_path
+        - file_path
+      properties:
+        id:
+          type: string
+          description: Root node ID
+        repository_id:
+          type: string
+          description: Repository ID
+        node_type:
+          type: string
+          enum: [controller, scheduler, listener, main]
+          description: Type of root node
+        symbol_path:
+          type: string
+          description: Full symbol path
+        file_path:
+          type: string
+          description: Relative file path
+        line_number:
+          type: integer
+          description: Line number
+        metadata:
+          type: object
+          description: Additional metadata
+
+    AnalysisConfig:
+      type: object
+      required:
+        - repository_ids
+      properties:
+        repository_ids:
+          type: array
+          items:
+            type: string
+          description: Repository IDs to analyze
+        incremental:
+          type: boolean
+          default: false
+          description: Use incremental analysis if available
+        max_depth:
+          type: integer
+          default: 10
+          minimum: 1
+          description: Maximum analysis depth
+
+    AnalysisStatus:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Analysis ID
+        status:
+          type: string
+          enum: [pending, running, completed, failed]
+          description: Current status
+        progress:
+          type: number
+          minimum: 0
+          maximum: 100
+          description: Progress percentage
+        message:
+          type: string
+          description: Status message
+        started_at:
+          type: string
+          format: date-time
+          description: Start time
+        estimated_completion:
+          type: string
+          format: date-time
+          description: Estimated completion time
+
+    AnalysisResult:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Result ID
+        status:
+          type: string
+          enum: [completed, failed]
+          description: Analysis completion status
+        total_symbols:
+          type: integer
+          description: Total symbols analyzed
+        reachable_symbols:
+          type: integer
+          description: Number of reachable symbols
+        zombie_symbols:
+          type: integer
+          description: Number of zombie symbols
+        duration_ms:
+          type: integer
+          description: Analysis duration
+        error_message:
+          type: string
+          description: Error details if failed
+
+    CodeSymbol:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Symbol ID
+        symbol_type:
+          type: string
+          enum: [file, function, class, struct, interface, enum, variable, constant]
+          description: Type of symbol
+        name:
+          type: string
+          description: Symbol name
+        qualified_name:
+          type: string
+          description: Fully qualified name
+        file_path:
+          type: string
+          description: File path
+        line_number:
+          type: integer
+          description: Start line number
+        language:
+          type: string
+          description: Programming language
+        visibility:
+          type: string
+          enum: [public, private, protected, internal]
+          description: Symbol visibility
+        signature:
+          type: string
+          description: Method signature
+        documentation:
+          type: string
+          description: Documentation
+
+    DependencyPath:
+      type: object
+      properties:
+        symbols:
+          type: array
+          items:
+            type: string
+          description: Path of symbol IDs
+        distance:
+          type: integer
+          description: Path length
+        relationship_types:
+          type: array
+          items:
+            type: string
+          description: Types of relationships in path
+
+    ZombieCodeReport:
+      type: object
+      properties:
+        analysis_id:
+          type: string
+          description: Analysis ID
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ZombieCodeItem'
+          description: Zombie code items
+        summary:
+          type: object
+          properties:
+            total_items:
+              type: integer
+              description: Total zombie items
+            by_type:
+              type: object
+              description: Count by zombie type
+            by_repository:
+              type: object
+              description: Count by repository
+
+    ZombieCodeItem:
+      type: object
+      properties:
+        symbol_id:
+          type: string
+          description: Symbol ID
+        zombie_type:
+          type: string
+          enum: [dead_code, orphaned, unreachable, deprecated]
+          description: Type of zombie code
+        isolation_distance:
+          type: integer
+          description: Steps to nearest active node
+        last_modified:
+          type: string
+          format: date-time
+          description: Last modification date
+        primary_contributor:
+          type: string
+          description: Main contributor
+        removal_confidence:
+          type: string
+          enum: [high, medium, low, none]
+          description: Confidence for safe removal
+        context_path:
+          type: array
+          items:
+            type: string
+          description: Path to nearest active root
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Error type
+        message:
+          type: string
+          description: Error message
+        details:
+          type: object
+          description: Additional error details
