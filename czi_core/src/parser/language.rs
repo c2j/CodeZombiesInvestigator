@@ -1,7 +1,6 @@
 //! Language support definitions and queries for Tree-sitter parsing
 
 use crate::{CziError, Result};
-use std::collections::HashMap;
 use std::sync::Arc;
 
 /// Supported programming languages

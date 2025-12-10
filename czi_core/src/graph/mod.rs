@@ -8,10 +8,9 @@ pub mod serialization;
 pub mod detectors;
 pub mod semantic_links;
 
-use crate::{CziError, Result, parser::CodeSymbol};
+use crate::{Result, parser::CodeSymbol};
 use petgraph::{graph::Graph, Directed, graph::NodeIndex, visit::EdgeRef};
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 
 // Re-export main types
 pub use edge::{DependencyEdge, EdgeType};

@@ -56,7 +56,7 @@ impl GraphSerializer {
 
     /// Calculate and return graph metrics
     pub fn calculate_metrics(&self, graph: &DependencyGraph) -> GraphMetrics {
-        use petgraph::algo;
+        
 
         let total_nodes = graph.node_count();
         let total_edges = graph.edge_count();
@@ -146,7 +146,7 @@ impl SerializableGraph {
     /// Convert back to a dependency graph
     pub fn to_graph(&self) -> Result<DependencyGraph> {
         use petgraph::graph::Graph;
-        use crate::parser::SymbolType;
+        
 
         let mut graph = Graph::<super::CodeSymbol, super::DependencyEdge, petgraph::Directed>::new();
 

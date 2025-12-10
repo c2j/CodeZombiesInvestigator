@@ -2,7 +2,7 @@
 
 use crate::{Result, parser::{TreeSitterManager, SupportedLanguage}};
 use crate::parser::LanguageQueries;
-use tree_sitter::{Language, Node, Query, QueryCursor};
+use tree_sitter::{Language, Query, QueryCursor};
 use std::sync::Arc;
 
 /// Detector for function calls and method invocations

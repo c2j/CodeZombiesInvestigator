@@ -107,7 +107,7 @@ pub struct RootNodeDetector {
 impl RootNodeDetector {
     /// Create a new root node detector with default patterns
     pub fn new() -> Self {
-        let mut patterns = HashMap::new();
+        let patterns = HashMap::new();
         let mut language_patterns = HashMap::new();
 
         // Java patterns

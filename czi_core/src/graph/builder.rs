@@ -1,7 +1,7 @@
 //! Dependency graph builder
 
-use crate::{Result, CodeSymbol, DependencyEdge, SymbolType, EdgeType, graph::DependencyGraph};
-use petgraph::{graph::Graph, Directed, graph::NodeIndex};
+use crate::{Result, CodeSymbol, DependencyEdge, graph::DependencyGraph};
+use petgraph::{graph::Graph, graph::NodeIndex};
 use std::collections::HashMap;
 
 /// Builder for creating dependency graphs

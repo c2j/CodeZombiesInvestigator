@@ -1,24 +1,19 @@
 //! Query commands
 
 use crate::{Result, IpcCommand, IpcResponse, CommandHandler, commands::BaseCommandHandler};
-use serde_json::Value;
 
 /// Handler for query commands
-pub struct QueryCommandHandler {
-    base: BaseCommandHandler,
-}
+pub struct QueryCommandHandler;
 
 impl QueryCommandHandler {
     pub fn new() -> Self {
-        Self {
-            base: BaseCommandHandler,
-        }
+        Self
     }
 
     pub fn query_dependencies(&self, command: IpcCommand) -> Result<IpcResponse> {
-        self.base.validate_params(&command, &["symbol_id"])?;
+        BaseCommandHandler::validate_params(&command, &["symbol_id"])?;
 
-        let _symbol_id: String = self.base.get_param(&command, "symbol_id")?;
+        let _symbol_id: String = BaseCommandHandler::get_param(&command, "symbol_id")?;
 
         let response_data = serde_json::json!({
             "symbol_id": command.id,
@@ -39,13 +34,13 @@ impl QueryCommandHandler {
             "total_count": 2
         });
 
-        Ok(self.base.success_response(command.id, Some(response_data)))
+        Ok(BaseCommandHandler::success_response(command.id, Some(response_data)))
     }
 
     pub fn get_symbol_info(&self, command: IpcCommand) -> Result<IpcResponse> {
-        self.base.validate_params(&command, &["symbol_id"])?;
+        BaseCommandHandler::validate_params(&command, &["symbol_id"])?;
 
-        let _symbol_id: String = self.base.get_param(&command, "symbol_id")?;
+        let _symbol_id: String = BaseCommandHandler::get_param(&command, "symbol_id")?;
 
         let response_data = serde_json::json!({
             "id": command.id,
@@ -61,7 +56,7 @@ impl QueryCommandHandler {
             }
         });
 
-        Ok(self.base.success_response(command.id, Some(response_data)))
+        Ok(BaseCommandHandler::success_response(command.id, Some(response_data)))
     }
 }
 
@@ -76,10 +71,50 @@ impl CommandHandler for QueryCommandHandler {
         match command.name.as_str() {
             "query_dependencies" => self.query_dependencies(command),
             "get_symbol_info" => self.get_symbol_info(command),
-            _ => Ok(self.base.error_response(
+            _ => Ok(BaseCommandHandler::error_response(
                 command.id,
                 format!("Unknown query command: {}", command.name)
             )),
         }
     }
+}
+
+// Tauri command exports
+#[cfg(feature = "tauri")]
+#[tauri::command]
+pub async fn query_dependencies(symbol_id: String) -> std::result::Result<serde_json::Value, String> {
+    let handler = QueryCommandHandler::new();
+    let command = IpcCommand {
+        id: uuid::Uuid::new_v4().to_string(),
+        name: "query_dependencies".to_string(),
+        parameters: Some(serde_json::json!({ "symbol_id": symbol_id })),
+        timestamp: chrono::Utc::now(),
+    };
+
+    handler.query_dependencies(command)
+        .map(|response| response.data.unwrap_or(serde_json::Value::Null))
+        .map_err(|e| e.to_string())
+}
+
+#[cfg(feature = "tauri")]
+#[tauri::command]
+pub async fn get_symbol_info(symbol_id: String) -> std::result::Result<serde_json::Value, String> {
+    let handler = QueryCommandHandler::new();
+    let command = IpcCommand {
+        id: uuid::Uuid::new_v4().to_string(),
+        name: "get_symbol_info".to_string(),
+        parameters: Some(serde_json::json!({ "symbol_id": symbol_id })),
+        timestamp: chrono::Utc::now(),
+    };
+
+    handler.get_symbol_info(command)
+        .map(|response| response.data.unwrap_or(serde_json::Value::Null))
+        .map_err(|e| e.to_string())
+}
+
+// Mock query command
+#[cfg(feature = "tauri")]
+#[tauri::command]
+pub async fn query_dependents() -> std::result::Result<Vec<serde_json::Value>, String> {
+    Ok(vec![])
 }

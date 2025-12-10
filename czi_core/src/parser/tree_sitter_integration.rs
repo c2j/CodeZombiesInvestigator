@@ -97,7 +97,7 @@ impl TreeSitterManager {
     /// Initialize language grammars
     fn initialize_languages(&self) -> Result<()> {
         let mut languages = self.languages.write().map_err(|_| {
-            CziError::generic("Failed to acquire write lock for languages")
+            CziError::internal("Failed to acquire write lock for languages")
         })?;
 
         info!("Initializing tree-sitter language grammars");
@@ -134,7 +134,7 @@ impl TreeSitterManager {
     #[instrument(skip(self))]
     pub fn get_parser(&self, language: SupportedLanguage) -> Result<Parser> {
         let _parsers = self.parsers.write().map_err(|_| {
-            CziError::generic("Failed to acquire write lock for parsers")
+            CziError::internal("Failed to acquire write lock for parsers")
         })?;
 
         // Note: Parser doesn't implement Clone, so we create a new one each time
@@ -143,7 +143,7 @@ impl TreeSitterManager {
         // Create new parser
         let mut parser = Parser::new();
         let languages = self.languages.read().map_err(|_| {
-            CziError::generic("Failed to acquire read lock for languages")
+            CziError::internal("Failed to acquire read lock for languages")
         })?;
 
         let language_obj = languages.get(&language)

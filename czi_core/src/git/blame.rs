@@ -1,7 +1,7 @@
 //! Git blame analysis for tracking code ownership and changes
 
 use crate::Result;
-use git2::{Repository, Blame, BlameHunk as GitBlameHunk, Signature};
+use git2::{BlameHunk as GitBlameHunk, Signature};
 use std::path::{Path, PathBuf};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -388,7 +388,7 @@ impl<'r> BlameAnalyzer<'r> {
     }
 
     /// Find a commit by ID
-    fn find_commit(&self, id: &str) -> Result<git2::Commit> {
+    fn find_commit(&self, id: &str) -> Result<git2::Commit<'_>> {
         let obj = self.repository.revparse_single(id)
             .map_err(|e| crate::CziError::git(format!("Failed to find commit: {}", e)))?;
 

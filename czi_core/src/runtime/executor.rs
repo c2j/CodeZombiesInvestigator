@@ -3,11 +3,9 @@
 use crate::Result;
 use std::sync::Arc;
 use std::future::Future;
-use std::pin::Pin;
-use std::task::{Context, Poll};
 use tokio::runtime::Handle;
-use tokio::sync::{oneshot, RwLock};
-use tracing::{debug, error, info, warn};
+use tokio::sync::RwLock;
+use tracing::{debug, info};
 
 /// Configuration for the executor
 #[derive(Debug, Clone)]

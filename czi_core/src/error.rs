@@ -74,6 +74,9 @@ pub enum CziError {
     #[error("Runtime error: {0}")]
     Runtime(String),
 
+    #[error("IPC error: {0}")]
+    Ipc(String),
+
     #[error("{0}")]
     Other(String),
 }
@@ -184,6 +187,11 @@ impl CziError {
         CziError::Git(git2::Error::from_str(&msg.into()))
     }
 
+    /// Create an IPC error
+    pub fn ipc<S: Into<String>>(msg: S) -> Self {
+        CziError::Ipc(msg.into())
+    }
+
     /// Create a generic error
     pub fn other<S: Into<String>>(msg: S) -> Self {
         CziError::Other(msg.into())
@@ -226,6 +234,7 @@ impl CziError {
             CziError::Unsupported(_) => "unsupported",
             CziError::Internal(_) => "internal",
             CziError::Runtime(_) => "runtime",
+            CziError::Ipc(_) => "ipc",
             CziError::Other(_) => "other",
         }
     }

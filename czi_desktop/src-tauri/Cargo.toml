@@ -10,7 +10,7 @@ tauri-build = { workspace = true, features = [] }
 [dependencies]
 # Core library
 czi_core = { path = "../../czi_core" }
-czi_ipc = { path = "../../czi_ipc" }
+czi_ipc = { path = "../../czi_ipc", features = ["tauri"] }
 
 # Async runtime
 tokio = { workspace = true }

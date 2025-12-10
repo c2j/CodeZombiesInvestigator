@@ -142,13 +142,13 @@ impl GitRepository {
     }
 
     /// Get the current HEAD reference
-    pub fn head(&self) -> Result<git2::Reference> {
+    pub fn head(&self) -> Result<git2::Reference<'_>> {
         self.repository.head()
             .map_err(|e| crate::CziError::git(format!("Failed to get HEAD: {}", e)))
     }
 
     /// Get the current commit
-    pub fn current_commit(&self) -> Result<git2::Commit> {
+    pub fn current_commit(&self) -> Result<git2::Commit<'_>> {
         let head = self.head()?;
         head.peel_to_commit()
             .map_err(|e| crate::CziError::git(format!("Failed to peel to commit: {}", e)))

@@ -33,3 +33,7 @@ chrono = { workspace = true }
 
 # Tauri - optional feature
 tauri = { workspace = true, optional = true }
+
+[features]
+default = []
+tauri = ["dep:tauri"]

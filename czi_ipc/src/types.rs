@@ -2,6 +2,7 @@
 
 use serde::{Deserialize, Serialize};
 use chrono::{DateTime, Utc};
+use crate::Result;
 
 /// IPC command structure
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -159,14 +160,14 @@ impl IpcCommand {
 
     /// Get a parameter value
     pub fn get_param<T: serde::de::DeserializeOwned>(&self, param_name: &str) -> Result<T> {
-        self.parameters
+        let param_value = self.parameters
             .as_ref()
             .and_then(|params| params.get(param_name))
             .ok_or_else(|| crate::CziError::validation(
                 format!("Missing parameter: {}", param_name)
             ))?
-            .clone()
-            .try_into()
+            .clone();
+        serde_json::from_value(param_value)
             .map_err(|e| crate::CziError::validation(
                 format!("Invalid parameter {}: {}", param_name, e)
             ))
@@ -176,8 +177,7 @@ impl IpcCommand {
     pub fn get_optional_param<T: serde::de::DeserializeOwned>(&self, param_name: &str) -> Result<Option<T>> {
         if let Some(params) = &self.parameters {
             if let Some(value) = params.get(param_name) {
-                let typed_value: T = value.clone()
-                    .try_into()
+                let typed_value: T = serde_json::from_value(value.clone())
                     .map_err(|e| crate::CziError::validation(
                         format!("Invalid parameter {}: {}", param_name, e)
                     ))?;
@@ -238,11 +238,11 @@ impl IpcResponse {
 
     /// Get response data as specific type
     pub fn get_data<T: serde::de::DeserializeOwned>(&self) -> Result<T> {
-        self.data
+        let data = self.data
             .as_ref()
             .ok_or_else(|| crate::CziError::ipc("No data in response".to_string()))?
-            .clone()
-            .try_into()
+            .clone();
+        serde_json::from_value(data)
             .map_err(|e| crate::CziError::ipc(
                 format!("Failed to deserialize response data: {}", e)
             ))

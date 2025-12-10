@@ -1,13 +1,13 @@
 //! Configuration persistence layer
 
-use crate::{CziError, Result, config::{CziConfig, RepositoryConfiguration}};
-use serde::{Deserialize, Serialize};
+use crate::{CziError, Result, config::{CziConfig, RepositoryConfig}};
 use std::path::{Path, PathBuf};
 use tokio::fs;
-use tracing::{debug, info, warn, error, instrument};
+use tracing::{debug, info, warn, instrument};
 use std::sync::Arc;
 
 /// Configuration storage service
+#[derive(Debug)]
 pub struct ConfigStorage {
     config_path: PathBuf,
     backup_path: PathBuf,
@@ -43,17 +43,11 @@ impl ConfigStorage {
         let config = match self.config_path.extension().and_then(|s| s.to_str()) {
             Some("yaml") | Some("yml") => {
                 serde_yaml::from_str(&content)
-                    .map_err(|e| CziError::serialization(
-                        "Failed to parse YAML configuration",
-                        e
-                    ))?
+                    .map_err(|e| CziError::internal(format!("Failed to parse YAML configuration: {}", e)))?
             }
             Some("json") | _ => {
                 serde_json::from_str(&content)
-                    .map_err(|e| CziError::serialization(
-                        "Failed to parse JSON configuration",
-                        e
-                    ))?
+                    .map_err(|e| CziError::internal(format!("Failed to parse JSON configuration: {}", e)))?
             }
         };
 
@@ -81,17 +75,11 @@ impl ConfigStorage {
         let content = match self.config_path.extension().and_then(|s| s.to_str()) {
             Some("yaml") | Some("yml") => {
                 serde_yaml::to_string(config)
-                    .map_err(|e| CziError::serialization(
-                        "Failed to serialize YAML configuration",
-                        e
-                    ))?
+                    .map_err(|e| CziError::internal(format!("Failed to serialize YAML configuration: {}", e)))?
             }
             Some("json") | _ => {
                 serde_json::to_string_pretty(config)
-                    .map_err(|e| CziError::serialization(
-                        "Failed to serialize JSON configuration",
-                        e
-                    ))?
+                    .map_err(|e| CziError::internal(format!("Failed to serialize JSON configuration: {}", e)))?
             }
         };
 
@@ -114,26 +102,25 @@ impl ConfigStorage {
     }
 
     /// Load repositories from configuration
-    pub async fn load_repositories(&self) -> Result<Vec<RepositoryConfiguration>> {
+    pub async fn load_repositories(&self) -> Result<Vec<RepositoryConfig>> {
         let config = self.load_config().await?;
         Ok(config.repositories)
     }
 
     /// Save repositories to configuration
-    pub async fn save_repositories(&self, repositories: Vec<RepositoryConfiguration>) -> Result<()> {
+    pub async fn save_repositories(&self, repositories: Vec<RepositoryConfig>) -> Result<()> {
         let mut config = self.load_config().await?;
         config.repositories = repositories;
         self.save_config(&config).await
     }
 
     /// Add a repository to configuration
-    pub async fn add_repository(&self, repository: RepositoryConfiguration) -> Result<()> {
+    pub async fn add_repository(&self, repository: RepositoryConfig) -> Result<()> {
         let mut repositories = self.load_repositories().await?;
 
         // Check if repository already exists
         if repositories.iter().any(|r| r.id == repository.id) {
             return Err(CziError::validation(
-                "id",
                 "Repository with this ID already exists"
             ));
         }
@@ -158,7 +145,7 @@ impl ConfigStorage {
     }
 
     /// Update a repository in configuration
-    pub async fn update_repository(&self, repository: RepositoryConfiguration) -> Result<bool> {
+    pub async fn update_repository(&self, repository: RepositoryConfig) -> Result<bool> {
         let mut repositories = self.load_repositories().await?;
 
         if let Some(existing_repo) = repositories.iter_mut().find(|r| r.id == repository.id) {
@@ -200,13 +187,15 @@ impl ConfigStorage {
         let config = self.load_config().await?;
         let content = match format {
             ConfigFormat::Json => serde_json::to_string_pretty(&config)
-                .map_err(|e| CziError::serialization("Failed to serialize JSON", e))?,
+                .map_err(|e| CziError::internal(format!("Failed to serialize JSON: {}", e)))?,
             ConfigFormat::Yaml => serde_yaml::to_string(&config)
-                .map_err(|e| CziError::serialization("Failed to serialize YAML", e))?,
+                .map_err(|e| CziError::internal(format!("Failed to serialize YAML: {}", e)))?,
         };
 
         fs::write(output_path, content).await
             .map_err(|e| CziError::Repository(format!("Failed to export configuration {}: {}", output_path.display(), e)))?;
+
+        Ok(())
     }
 
     /// Import configuration from file
@@ -217,11 +206,11 @@ impl ConfigStorage {
         let imported_config: CziConfig = match import_path.extension().and_then(|s| s.to_str()) {
             Some("yaml") | Some("yml") => {
                 serde_yaml::from_str(&content)
-                    .map_err(|e| CziError::serialization("Failed to parse YAML", e))?
+                    .map_err(|e| CziError::internal(format!("Failed to parse YAML: {}", e)))?
             }
             Some("json") | _ => {
                 serde_json::from_str(&content)
-                    .map_err(|e| CziError::serialization("Failed to parse JSON", e))?
+                    .map_err(|e| CziError::internal(format!("Failed to parse JSON: {}", e)))?
             }
         };
 
@@ -347,16 +336,15 @@ mod tests {
         let temp_dir = TempDir::new().unwrap();
         let storage = ConfigStorage::new(temp_dir.path().join("config.json"));
 
-        let repo = RepositoryConfiguration {
+        let repo = RepositoryConfig {
             id: "test_repo".to_string(),
             name: "Test Repository".to_string(),
             url: "https://github.com/test/repo.git".to_string(),
             local_path: None,
             branch: "main".to_string(),
-            auth_type: crate::config::AuthType::None,
-            auth_config: crate::config::AuthConfig::None,
+            auth: None,
+            enabled: true,
             last_sync: None,
-            status: crate::config::RepositoryStatus::Active,
         };
 
         // Add repository

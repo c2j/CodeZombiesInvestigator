@@ -18,7 +18,7 @@ pub use executor::{CziExecutor, ExecutorConfig};
 use crate::Result;
 use std::sync::Arc;
 use tokio::runtime::{Builder, Runtime};
-use tracing::{info, warn, error};
+use tracing::{info, warn};
 
 /// Main async runtime manager for CZI operations
 pub struct CziRuntime {

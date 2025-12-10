@@ -2,8 +2,7 @@
 
 use crate::{CziError, Result};
 use serde::{Deserialize, Serialize};
-use std::path::PathBuf;
-use super::repository::{AuthType, RepositoryConfiguration};
+use super::repository::AuthType;
 
 /// Re-export authentication types from repository module
 pub use super::repository::{AuthConfig};

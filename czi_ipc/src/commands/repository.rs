@@ -2,7 +2,6 @@
 
 use crate::{Result, IpcCommand, IpcResponse, CommandHandler, commands::BaseCommandHandler};
 use serde_json::Value;
-use std::sync::Arc;
 
 /// Handler for repository management commands
 pub struct RepositoryCommandHandler {
@@ -73,26 +72,26 @@ impl RepositoryCommandHandler {
 
     fn mock_list_repositories(&self, command: IpcCommand) -> Result<IpcResponse> {
         let repositories = Value::Array(vec![
-            Value::Object(serde_json::json!({
+            serde_json::json!({
                 "id": "example_repo_1",
                 "name": "Example Repository 1",
                 "url": "https://github.com/example/repo1.git",
                 "status": "active"
-            })),
-            Value::Object(serde_json::json!({
+            }),
+            serde_json::json!({
                 "id": "example_repo_2",
                 "name": "Example Repository 2",
                 "url": "https://github.com/example/repo2.git",
                 "status": "syncing"
-            })),
+            }),
         ]);
 
-        Ok(BaseCommandHandler.success_response(command.id, Some(repositories)))
+        Ok(BaseCommandHandler::success_response(command.id, Some(repositories)))
     }
 
     fn mock_add_repository(&self, command: IpcCommand) -> Result<IpcResponse> {
         // Validate required parameters
-        BaseCommandHandler.validate_params(&command, &["name", "url"])?;
+        BaseCommandHandler::validate_params(&command, &["name", "url"])?;
 
         let name: String = BaseCommandHandler::get_param(&command, "name")?;
         let url: String = BaseCommandHandler::get_param(&command, "url")?;
@@ -107,36 +106,36 @@ impl RepositoryCommandHandler {
             "created_at": chrono::Utc::now().to_rfc3339()
         });
 
-        Ok(BaseCommandHandler.success_response(command.id, Some(response_data)))
+        Ok(BaseCommandHandler::success_response(command.id, Some(response_data)))
     }
 
     fn mock_remove_repository(&self, command: IpcCommand) -> Result<IpcResponse> {
         // Validate required parameters
-        BaseCommandHandler.validate_params(&command, &["id"])?;
+        BaseCommandHandler::validate_params(&command, &["id"])?;
 
         let response_data = serde_json::json!({
             "success": true,
             "message": "Repository removed successfully"
         });
 
-        Ok(BaseCommandHandler.success_response(command.id, Some(response_data)))
+        Ok(BaseCommandHandler::success_response(command.id, Some(response_data)))
     }
 
     fn mock_sync_repository(&self, command: IpcCommand) -> Result<IpcResponse> {
         // Validate required parameters
-        BaseCommandHandler.validate_params(&command, &["id"])?;
+        BaseCommandHandler::validate_params(&command, &["id"])?;
 
         let response_data = serde_json::json!({
             "status": "sync_started",
             "message": "Repository synchronization started"
         });
 
-        Ok(BaseCommandHandler.success_response(command.id, Some(response_data)))
+        Ok(BaseCommandHandler::success_response(command.id, Some(response_data)))
     }
 
     fn mock_validate_repository(&self, command: IpcCommand) -> Result<IpcResponse> {
         // Validate required parameters
-        BaseCommandHandler.validate_params(&command, &["url"])?;
+        BaseCommandHandler::validate_params(&command, &["url"])?;
 
         let _url: String = BaseCommandHandler::get_param(&command, "url")?;
 
@@ -149,7 +148,7 @@ impl RepositoryCommandHandler {
             "message": "Repository is valid and accessible"
         });
 
-        Ok(BaseCommandHandler.success_response(command.id, Some(response_data)))
+        Ok(BaseCommandHandler::success_response(command.id, Some(response_data)))
     }
 }
 
@@ -161,24 +160,30 @@ impl Default for RepositoryCommandHandler {
 
 impl CommandHandler for RepositoryCommandHandler {
     fn execute(&self, command: IpcCommand) -> Result<IpcResponse> {
-        match command.name.as_str() {
-            "list_repositories" => self.list_repositories(command),
-            "add_repository" => self.add_repository(command),
-            "remove_repository" => self.remove_repository(command),
-            "sync_repository" => self.sync_repository(command),
-            "validate_repository" => self.validate_repository(command),
-            _ => Ok(self.base.error_response(
-                command.id,
-                format!("Unknown repository command: {}", command.name)
-            )),
-        }
+        // Create a runtime for async operations
+        let rt = tokio::runtime::Runtime::new()
+            .map_err(|e| crate::CziError::internal(format!("Failed to create runtime: {}", e)))?;
+
+        rt.block_on(async {
+            match command.name.as_str() {
+                "list_repositories" => self.list_repositories(command).await,
+                "add_repository" => self.add_repository(command).await,
+                "remove_repository" => self.remove_repository(command).await,
+                "sync_repository" => self.sync_repository(command).await,
+                "validate_repository" => self.validate_repository(command).await,
+                _ => Ok(BaseCommandHandler::error_response(
+                    command.id,
+                    format!("Unknown repository command: {}", command.name)
+                )),
+            }
+        })
     }
 }
 
 // Tauri command exports (to be used when Tauri is re-enabled)
 #[cfg(feature = "tauri")]
 #[tauri::command]
-pub async fn list_repositories() -> Result<Value, String> {
+pub async fn list_repositories() -> std::result::Result<Value, String> {
     let handler = RepositoryCommandHandler::new();
     let command = IpcCommand {
         id: uuid::Uuid::new_v4().to_string(),
@@ -188,13 +193,14 @@ pub async fn list_repositories() -> Result<Value, String> {
     };
 
     handler.list_repositories(command)
+        .await
         .map(|response| response.data.unwrap_or(Value::Null))
         .map_err(|e| e.to_string())
 }
 
 #[cfg(feature = "tauri")]
 #[tauri::command]
-pub async fn add_repository(config: Value) -> Result<String, String> {
+pub async fn add_repository(config: Value) -> std::result::Result<String, String> {
     let handler = RepositoryCommandHandler::new();
     let command = IpcCommand {
         id: uuid::Uuid::new_v4().to_string(),
@@ -204,17 +210,22 @@ pub async fn add_repository(config: Value) -> Result<String, String> {
     };
 
     handler.add_repository(command)
-        .map(|response| response.data
-            .and_then(|data| data.get("id"))
-            .and_then(|id| id.as_str())
-            .unwrap_or("unknown")
-            .to_string())
+        .await
+        .map(|response| {
+                if let Some(data) = &response.data {
+                    data.get("id")
+                        .map(|id| id.to_string())
+                        .unwrap_or_else(|| "unknown".to_string())
+                } else {
+                    "unknown".to_string()
+                }
+            })
         .map_err(|e| e.to_string())
 }
 
 #[cfg(feature = "tauri")]
 #[tauri::command]
-pub async fn remove_repository(id: String) -> Result<(), String> {
+pub async fn remove_repository(id: String) -> std::result::Result<(), String> {
     let handler = RepositoryCommandHandler::new();
     let command = IpcCommand {
         id: uuid::Uuid::new_v4().to_string(),
@@ -224,13 +235,14 @@ pub async fn remove_repository(id: String) -> Result<(), String> {
     };
 
     handler.remove_repository(command)
+        .await
         .map(|_| ())
         .map_err(|e| e.to_string())
 }
 
 #[cfg(feature = "tauri")]
 #[tauri::command]
-pub async fn sync_repository(id: String) -> Result<Value, String> {
+pub async fn sync_repository(id: String) -> std::result::Result<Value, String> {
     let handler = RepositoryCommandHandler::new();
     let command = IpcCommand {
         id: uuid::Uuid::new_v4().to_string(),
@@ -240,13 +252,14 @@ pub async fn sync_repository(id: String) -> Result<Value, String> {
     };
 
     handler.sync_repository(command)
+        .await
         .map(|response| response.data.unwrap_or(Value::Null))
         .map_err(|e| e.to_string())
 }
 
 #[cfg(feature = "tauri")]
 #[tauri::command]
-pub async fn validate_repository(url: String) -> Result<Value, String> {
+pub async fn validate_repository(url: String) -> std::result::Result<Value, String> {
     let handler = RepositoryCommandHandler::new();
     let command = IpcCommand {
         id: uuid::Uuid::new_v4().to_string(),
@@ -256,6 +269,7 @@ pub async fn validate_repository(url: String) -> Result<Value, String> {
     };
 
     handler.validate_repository(command)
+        .await
         .map(|response| response.data.unwrap_or(Value::Null))
         .map_err(|e| e.to_string())
 }

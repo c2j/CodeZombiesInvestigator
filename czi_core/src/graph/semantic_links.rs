@@ -108,7 +108,7 @@ impl SemanticLinkDetector {
             return Ok(0);
         }
 
-        let mut links_added = 0;
+        let links_added = 0;
 
         // Framework-specific patterns would be implemented here
         // For example:
@@ -127,7 +127,7 @@ impl SemanticLinkDetector {
             return Ok(0);
         }
 
-        let mut links_added = 0;
+        let links_added = 0;
 
         // Annotation-based patterns would be implemented here
         // For example:

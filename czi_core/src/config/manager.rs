@@ -90,6 +90,12 @@ pub enum AuthConfig {
     },
 }
 
+impl Default for AuthConfig {
+    fn default() -> Self {
+        AuthConfig::None
+    }
+}
+
 /// Root node configuration
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RootNodeConfig {

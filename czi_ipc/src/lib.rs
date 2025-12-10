@@ -9,10 +9,13 @@ pub mod handlers;
 pub mod transport;
 
 // Re-export common types from core
-pub use czi_core::{CziError, Result};
+pub use czi_core::CziError;
+pub use czi_core::Result as CoreResult;
 
-use crate::Result;
-use serde::{Deserialize, Serialize};
+// Re-export IPC types
+pub use types::{IpcCommand, IpcResponse, IpcEvent, CommandStatus};
+
+use crate::CoreResult as Result;
 use std::collections::HashMap;
 
 /// Main IPC manager for command routing and handling
@@ -55,13 +58,14 @@ impl IpcManager {
     /// Process an incoming command
     pub fn process_command(&self, command: IpcCommand) -> IpcResponse {
         let start_time = std::time::Instant::now();
+        let command_id = command.id.clone();
 
         let response = match self.handlers.get(&command.name) {
             Some(handler) => {
                 match handler.execute(command) {
                     Ok(result) => result,
                     Err(e) => IpcResponse {
-                        command_id: command.id,
+                        command_id,
                         success: false,
                         data: None,
                         error: Some(e.to_string()),
@@ -70,7 +74,7 @@ impl IpcManager {
                 }
             }
             None => IpcResponse {
-                command_id: command.id,
+                command_id,
                 success: false,
                 data: None,
                 error: Some(format!("Unknown command: {}", command.name)),

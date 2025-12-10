@@ -6,8 +6,6 @@
 use crate::{CziError, Result};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use tracing::{debug, trace, instrument};
-use uuid::Uuid;
 
 /// Code symbol representing an extracted code entity
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]

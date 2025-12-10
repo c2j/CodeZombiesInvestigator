@@ -76,10 +76,14 @@
           <h2>Analysis Results</h2>
           <p class="section-description">Review zombie code analysis results and explore dependencies.</p>
 
-          <ResultsViewer
+          <div class="placeholder-content">
+            <p>Results viewer will be implemented in User Story 3.</p>
+          </div>
+
+          <!-- ResultsViewer
             :results="analysisResults"
             @results-exported="handleResultsExported"
-          />
+          /> -->
         </section>
 
         <!-- Settings Section -->
@@ -102,8 +106,8 @@ import { ref, reactive, onMounted } from 'vue'
 import RepositoryConfig from './components/repository/RepositoryConfig.vue'
 import RepositoryList from './components/repository/RepositoryList.vue'
 import AnalysisPanel from './components/analysis/AnalysisPanel.vue'
-import ResultsViewer from './components/results/ResultsViewer.vue'
-import SettingsPanel from './components/settings/SettingsPanel.vue'
+// import ResultsViewer from './components/results/ResultsViewer.vue' // To be implemented in US3
+// import SettingsPanel from './components/settings/SettingsPanel.vue' // Already exists
 
 export default {
   name: 'App',
@@ -111,7 +115,7 @@ export default {
     RepositoryConfig,
     RepositoryList,
     AnalysisPanel,
-    ResultsViewer,
+    // ResultsViewer, // To be implemented in US3
     SettingsPanel
   },
   setup() {
@@ -630,5 +634,14 @@ body {
   .content-area {
     padding: 1rem;
   }
+}
+
+.placeholder-content {
+  background: #f8f9fa;
+  border: 2px dashed #dee2e6;
+  border-radius: 8px;
+  padding: 3rem;
+  text-align: center;
+  color: #6c757d;
 }
 </style>

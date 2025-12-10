@@ -1,7 +1,7 @@
 //! Multi-language parsing support using Tree-sitter
 
 use std::collections::HashMap;
-use tree_sitter::{Language, Parser, Query, QueryCursor};
+use tree_sitter::{Language, Parser};
 
 use crate::error::{CziError, Result};
 
@@ -146,6 +146,15 @@ impl TreeSitterManager {
             SupportedLanguage::JavaScript,
             SupportedLanguage::Python,
             SupportedLanguage::Shell,
+        ]
+    }
+
+    /// Get supported file extensions
+    pub fn supported_extensions(&self) -> Vec<&'static str> {
+        vec![
+            "java", "js", "jsx", "ts", "tsx", "mjs",  // JavaScript/TypeScript
+            "py", "pyw", "pyi",  // Python
+            "sh", "bash", "zsh", "fish",  // Shell
         ]
     }
 }

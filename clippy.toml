@@ -20,7 +20,7 @@ type-complexity-threshold = 250
 single-char-binding-names-threshold = 4
 
 # Useful performance lints
-allow-performance-nursery = false
+# Note: performance-nursery lints are now allowed by default
 
 # Restriction level - strict for better code quality
 allow-expect-in-tests = true

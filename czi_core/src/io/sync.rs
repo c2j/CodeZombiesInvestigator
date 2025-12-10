@@ -4,7 +4,7 @@ use crate::{CziError, Result, config::{RepositoryConfiguration, repository::Auth
 use std::path::{Path, PathBuf};
 use serde::{Deserialize, Serialize};
 use tokio::task;
-use tracing::{debug, info, warn, error, instrument};
+use tracing::{info, warn, error, instrument};
 use chrono::{DateTime, Utc};
 
 /// Repository synchronization service
@@ -368,7 +368,7 @@ impl RepositorySyncService {
             local_path: Some(PathBuf::from(path)),
             branch: "main".to_string(),
             auth_type: crate::config::AuthType::None,
-            auth_config: crate::config::AuthConfig::None,
+            auth_config: AuthConfig::None,
             last_sync: None,
             status: crate::config::RepositoryStatus::Active,
         };

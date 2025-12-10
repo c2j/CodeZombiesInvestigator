@@ -1,8 +1,8 @@
 //! Git operations for cloning, fetching, and repository management
 
 use crate::{Result, git::{GitRepository, GitRepositoryConfig, repository::GitAuthConfig}, config::{auth::RepositoryAccessInfo, AuthType, repository::AuthConfig}};
-use git2::{Repository, FetchOptions as Git2FetchOptions, PushOptions, RemoteCallbacks};
-use std::path::{Path, PathBuf};
+use git2::{Repository, RemoteCallbacks};
+use std::path::Path;
 use std::time::Duration;
 use serde::{Deserialize, Serialize};
 use tokio::time::timeout;
@@ -167,7 +167,7 @@ impl GitOperations {
         // For now, we'll implement depth through a post-clone fetch if needed
 
         // Configure authentication callbacks
-        let mut callbacks = self.create_callbacks(&options.auth)?;
+        let callbacks = self.create_callbacks(&options.auth)?;
 
         // Configure fetch options for cloning
         let mut fetch_options = git2::FetchOptions::new();
@@ -273,7 +273,7 @@ impl GitOperations {
         let mut remote = repository.inner().find_remote(remote_name)
             .map_err(|e| crate::CziError::git(format!("Remote '{}' not found: {}", remote_name, e)))?;
 
-        let mut callbacks = self.create_callbacks(&options.auth)?;
+        let callbacks = self.create_callbacks(&options.auth)?;
 
         let mut fetch_options = git2::FetchOptions::new();
         fetch_options.remote_callbacks(callbacks);

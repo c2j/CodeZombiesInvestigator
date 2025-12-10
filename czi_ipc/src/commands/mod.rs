@@ -9,7 +9,7 @@ pub use repository::*;
 pub use analysis::*;
 pub use queries::*;
 
-use crate::{Result, IpcCommand, IpcResponse, CommandHandler};
+use crate::{Result, IpcCommand, IpcResponse};
 use serde_json::Value;
 
 /// Base command handler with common functionality
@@ -59,14 +59,14 @@ impl BaseCommandHandler {
         command: &IpcCommand,
         param_name: &str
     ) -> Result<T> {
-        command.parameters
+        let param_value = command.parameters
             .as_ref()
             .and_then(|params| params.get(param_name))
             .ok_or_else(|| crate::CziError::validation(
                 format!("Missing parameter: {}", param_name)
             ))?
-            .clone()
-            .try_into()
+            .clone();
+        serde_json::from_value(param_value)
             .map_err(|e| crate::CziError::validation(
                 format!("Invalid parameter {}: {}", param_name, e)
             ))
@@ -79,8 +79,7 @@ impl BaseCommandHandler {
     ) -> Result<Option<T>> {
         if let Some(params) = &command.parameters {
             if let Some(value) = params.get(param_name) {
-                let typed_value: T = value.clone()
-                    .try_into()
+                let typed_value: T = serde_json::from_value(value.clone())
                     .map_err(|e| crate::CziError::validation(
                         format!("Invalid parameter {}: {}", param_name, e)
                     ))?;

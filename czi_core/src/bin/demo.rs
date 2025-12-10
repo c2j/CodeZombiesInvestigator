@@ -36,7 +36,7 @@ fn test_error_handling() {
     let config_error = CziError::config("配置文件格式错误");
     println!("   配置错误: {}", config_error);
 
-    let parse_error = CziError::parse("test.java", 10, "语法错误");
+    let parse_error = CziError::parse("语法错误: test.java:10");
     println!("   解析错误: {}", parse_error);
 
     let analysis_error = CziError::analysis("分析过程中内存不足");
@@ -77,10 +77,10 @@ fn test_configuration_management() -> Result<()> {
 }
 
 fn test_tree_sitter_parsing() -> Result<()> {
-    let manager = TreeSitterManager::new()?;
+    let mut manager = TreeSitterManager::new()?;
 
     // 测试支持的语言
-    let supported_languages = manager.supported_languages();
+    let supported_languages = TreeSitterManager::supported_languages();
     println!("   支持的语言数量: {}", supported_languages.len());
     println!("   支持的文件扩展名: {:?}", manager.supported_extensions());
 
@@ -135,10 +135,7 @@ fn test_language_detection() {
 
     for (file, expected) in test_files {
         let path = std::path::Path::new(file);
-        let detected = SupportedLanguage::from_path(path)
-            .or_else(|| SupportedLanguage::from_file_name(
-                path.file_name().and_then(|n| n.to_str()).unwrap_or("")
-            ));
+        let detected = SupportedLanguage::from_path(path);
 
         let detected_name = detected.map(|l| l.name()).unwrap_or("Unknown");
         println!("   {} -> {} (预期: {})", file, detected_name, expected);
@@ -147,19 +144,19 @@ fn test_language_detection() {
 
 fn test_serialization() -> Result<()> {
     // 测试RepositoryConfiguration序列化
-    use crate::{RepositoryConfiguration, AuthType, AuthConfig, RepositoryStatus};
+    use czi_core::{RepositoryConfiguration, AuthType, config::repository::AuthConfig, RepositoryStatus};
 
     let repo_config = RepositoryConfiguration {
         id: "demo_repo".to_string(),
         name: "演示仓库".to_string(),
         url: "https://github.com/demo/repo.git".to_string(),
-        local_path: PathBuf::from("./cache/demo_repo"),
+        local_path: Some(PathBuf::from("./cache/demo_repo")),
         branch: "main".to_string(),
         auth_type: AuthType::Token,
-        auth_config: Some(AuthConfig::Token {
+        auth_config: AuthConfig::Token {
             token: "demo_token".to_string(),
             username: Some("demo_user".to_string()),
-        }),
+        },
         last_sync: Some(chrono::Utc::now()),
         status: RepositoryStatus::Active,
     };

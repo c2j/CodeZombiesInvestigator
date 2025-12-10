@@ -6,8 +6,6 @@
 use crate::{CziError, Result};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use tracing::{debug, trace};
-use uuid::Uuid;
 
 /// Dependency edge representing a relationship between two code symbols
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]

@@ -20,7 +20,7 @@ mod tests;
 pub use error::{CziError, Result};
 pub use logging::{init_logging, OperationTimer, PerformanceMetrics};
 pub use config::{
-    RepositoryConfiguration, RepositoryConfigFull as ConfigRepositoryConfig, RootNodeConfig,
+    RepositoryConfiguration, RepositoryConfig as ConfigRepositoryConfig, RootNodeConfig,
     AuthType, RepositoryStatus, CziConfig, ConfigManager
 };
 pub use graph::edge::{DependencyEdge, EdgeType};

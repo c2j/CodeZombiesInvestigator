@@ -93,10 +93,10 @@ description: "Task list for feature implementation"
 - [x] T022 [P] [US1] Implement configuration persistence layer in czi_core/src/config/storage.rs for JSON/YAML config files
 - [x] T023 [US1] Create repository management commands in czi_ipc/src/commands/repository.rs (list_repositories, add_repository, remove_repository, sync_repository)
 - [x] T024 [US1] Implement Tauri IPC command handlers in czi_ipc/src/handlers/repository.rs that call core services and handle serialization
-- [ ] T025 [US1] Create frontend repository configuration UI components in czi_desktop/src/components/RepositoryConfig.vue with forms for adding/editing repositories
-- [ ] T026 [US1] Implement frontend repository list component in czi_desktop/src/components/RepositoryList.vue with status indicators and sync controls
-- [ ] T027 [US1] Add authentication configuration UI in czi_desktop/src/components/AuthConfig.vue with secure credential handling
-- [ ] T028 [US1] Implement repository validation UI in czi_desktop/src/components/RepositoryValidator.vue with real-time access testing
+- [x] T025 [US1] Create frontend repository configuration UI components in czi_desktop/src/components/RepositoryConfig.vue with forms for adding/editing repositories
+- [x] T026 [US1] Implement frontend repository list component in czi_desktop/src/components/RepositoryList.vue with status indicators and sync controls
+- [x] T027 [US1] Add authentication configuration UI in czi_desktop/src/components/AuthConfig.vue with secure credential handling
+- [x] T028 [US1] Implement repository validation UI in czi_desktop/src/components/RepositoryValidator.vue with real-time access testing
 
 **Checkpoint**: At this point, User Story 1 should be fully functional and testable independently
 
@@ -129,9 +129,9 @@ description: "Task list for feature implementation"
 - [ ] T042 [P] [US2] Create graph serialization with bincode in czi_core/src/graph/serialization.rs for fast load/save operations
 - [ ] T043 [P] [US2] Implement analysis orchestration service in czi_core/src/analysis/orchestrator.rs that coordinates parsing, graph building, and analysis
 - [ ] T044 [US2] Create analysis commands in czi_ipc/src/commands/analysis.rs (run_analysis, get_analysis_status, get_analysis_results)
-- [ ] T045 [US2] Implement Tauri analysis UI components in czi_desktop/src/components/AnalysisPanel.vue with progress tracking and status display
-- [ ] T046 [US2] Create root node configuration UI in czi_desktop/src/components/RootNodeConfig.vue with symbol validation and type selection
-- [ ] T047 [US2] Implement analysis progress visualization in czi_desktop/src/components/AnalysisProgress.vue with real-time updates and performance metrics
+- [x] T045 [US2] Implement Tauri analysis UI components in czi_desktop/src/components/AnalysisPanel.vue with progress tracking and status display
+- [x] T046 [US2] Create root node configuration UI in czi_desktop/src/components/RootNodeConfig.vue with symbol validation and type selection
+- [x] T047 [US2] Implement analysis progress visualization in czi_desktop/src/components/AnalysisProgress.vue with real-time updates and performance metrics
 
 **Checkpoint**: At this point, User Stories 1 AND 2 should both work independently
 

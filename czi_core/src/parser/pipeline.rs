@@ -7,15 +7,14 @@ use crate::{
     Result, CziError,
     parser::{CodeSymbol, SymbolType, SymbolVisibility, SymbolMetadataBuilder, language::SupportedLanguage},
     graph::{DependencyEdge, EdgeType, builder::GraphBuilder},
-    config::root_node::{RootNodeDetector, RootNodeType},
+    config::root_node::RootNodeDetector,
 };
 use std::{
-    collections::HashMap,
     path::{Path, PathBuf},
     sync::Arc,
 };
 use tokio::sync::RwLock;
-use tracing::{debug, info, warn, error, instrument};
+use tracing::{debug, info, warn, instrument};
 use uuid::Uuid;
 
 /// Configuration for parser pipeline

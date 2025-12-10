@@ -1,7 +1,7 @@
 //! Git diff analysis utilities
 
 use crate::Result;
-use git2::{Diff, DiffOptions, Repository, DiffDelta, DiffHunk, DiffLine};
+use git2::{Diff, DiffOptions, DiffDelta};
 use std::path::{Path, PathBuf};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -305,7 +305,7 @@ impl<'r> DiffAnalyzer<'r> {
     }
 
     /// Create a diff for a specific delta
-    fn create_diff_for_delta(&self, _delta: &DiffDelta) -> Result<Diff> {
+    fn create_diff_for_delta(&self, _delta: &DiffDelta) -> Result<Diff<'_>> {
         // Note: diff_file_to_file not available in git2 0.18
         // Return empty diff as fallback
         self.repository.diff_tree_to_tree(None, None, None)
@@ -394,7 +394,7 @@ impl<'r> DiffAnalyzer<'r> {
     }
 
     /// Find a commit by hash or reference
-    fn find_commit(&self, id: &str) -> Result<git2::Commit> {
+    fn find_commit(&self, id: &str) -> Result<git2::Commit<'_>> {
         let obj = self.repository.revparse_single(id)
             .map_err(|e| crate::CziError::git(format!("Failed to find commit: {}", e)))?;
 
