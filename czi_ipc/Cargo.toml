@@ -1,0 +1,35 @@
+[package]
+name = "czi_ipc"
+version = "0.1.0"
+edition = "2021"
+description = "IPC layer for CodeZombiesInvestigator desktop application"
+
+[dependencies]
+# Core library
+czi_core = { path = "../czi_core" }
+
+# Async runtime
+tokio = { workspace = true }
+
+# Serialization
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+# Tauri - temporarily removed to avoid system dependencies
+# tauri = { workspace = true }
+
+# Error handling
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+
+# Logging
+tracing = { workspace = true }
+
+# UUID generation
+uuid = { workspace = true }
+
+# Date/time handling
+chrono = { workspace = true }
+
+# Tauri - optional feature
+tauri = { workspace = true, optional = true }

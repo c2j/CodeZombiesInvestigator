@@ -1,0 +1,45 @@
+{
+  "app": {
+    "log_level": "info",
+    "data_dir": "./data",
+    "cache_dir": "./cache",
+    "max_concurrent_operations": 4,
+    "debug": false
+  },
+  "repositories": [],
+  "active_root_nodes": [],
+  "analysis": {
+    "languages": [
+      "java",
+      "javascript",
+      "python",
+      "shell"
+    ],
+    "include_patterns": [
+      "**/*.java",
+      "**/*.js",
+      "**/*.mjs",
+      "**/*.py",
+      "**/*.sh",
+      "**/*.bash"
+    ],
+    "exclude_patterns": [
+      "**/node_modules/**",
+      "**/target/**",
+      "**/build/**",
+      "**/dist/**",
+      "**/.git/**",
+      "**/*.min.js"
+    ],
+    "max_file_size_bytes": 1048576,
+    "enable_semantic_links": true,
+    "min_confidence_threshold": 0.7
+  },
+  "performance": {
+    "max_memory_mb": 2048,
+    "max_analysis_time_minutes": 120,
+    "file_batch_size": 100,
+    "enable_incremental": true,
+    "parser_threads": 0
+  }
+}

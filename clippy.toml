@@ -1,0 +1,40 @@
+# Clippy configuration for CodeZombiesInvestigator
+
+# Cognitive complexity threshold
+cognitive-complexity-threshold = 30
+
+# Function size limits
+too-many-arguments-threshold = 7
+too-many-lines-threshold = 100
+
+# Enum and struct variant size limits
+enum-variant-size-threshold = 200
+
+# Memory size threshold
+trivial-copy-size-limit = 256
+
+# Type complexity limits
+type-complexity-threshold = 250
+
+# Single char binding names
+single-char-binding-names-threshold = 4
+
+# Useful performance lints
+allow-performance-nursery = false
+
+# Restriction level - strict for better code quality
+allow-expect-in-tests = true
+allow-unwrap-in-tests = true
+allow-dbg-in-tests = true
+
+# Path filtering
+allow-mixed-uninlined-format-args = true
+
+# Documentation requirements
+missing-docs-in-crate-items = false
+
+# Allow certain clippy lints that we want
+allowed-scripts = ["Latin", "Cyrillic"]
+
+# Disallow certain pedantic lints that are too noisy
+avoid-breaking-exported-api = true
